@@ -14,7 +14,7 @@ def job():
     print("Success")
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=job, trigger="interval", seconds=6)
+scheduler.add_job(func=job, trigger="interval", seconds=3600)
 scheduler.start()
 
 atexit.register(lambda: scheduler.shutdown())
