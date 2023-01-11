@@ -101,6 +101,7 @@ def respondToTweet(file='tweet_ID.txt'):
             requests.post(os.getenv('BACKEND_URL') + '/add-tweet', json={
                 'tweetId': tweet_status.id_str,
                 'tweetUrl': tweet_url,
+                'tweetImageUrl': media_url,
                 'tweetAuthor': tweet_status.user.screen_name,
                 'tweetTagAuthor': mention.user.screen_name,
                 'tweetTagId': mention.id_str
