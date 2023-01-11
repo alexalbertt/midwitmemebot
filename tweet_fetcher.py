@@ -47,11 +47,12 @@ api = tweepy.API(auth)
 def respondToTweet(file='tweet_ID.txt'):
     # Get the last tweet ID that the bot replied to
     response = requests.get(os.getenv("BACKEND_URL") + "/last-seen")
+    print(response)
     last_id_json = response.json()
     if len(last_id_json["rows"]) == 0:
         last_id = 0
     else:
-        last_id = last_id_json["rows"][0]["tweet_tag_id"]
+        last_id = last_id_json["rows"][0]["tweetTagId"]
     print(last_id)
 
     # Get the mentions
