@@ -108,7 +108,7 @@ def respondToTweet(file='tweet_ID.txt'):
             print("liking and replying to tweet")
             # Reply to the tagged tweet with the message "Success"
             api.create_favorite(mention.id)
-            status = "This meme has been added to midwitmeme.com!"
+            status = "This meme has been added to www.midwitmeme.com!"
             in_reply_to_status_id = mention.id
             api.update_status(status=status, in_reply_to_status_id=in_reply_to_status_id, auto_populate_reply_metadata=True)
 
