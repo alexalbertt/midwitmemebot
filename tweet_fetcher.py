@@ -64,7 +64,7 @@ def respondToTweet(file='tweet_ID.txt'):
 
     for mention in reversed(mentions):
 
-        if (str(mention.id) == str(last_id)):
+        if (int(mention.id) <= int(last_id)):
             print("same id, continuing...")
             continue
         print(str(mention.id) + '-' + mention.full_text)
