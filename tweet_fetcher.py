@@ -6,6 +6,8 @@ import os
 import torch
 import torchvision
 import sys
+import pickle
+from fastai.vision.all import * 
 
 from PIL import Image
 
@@ -22,32 +24,19 @@ api = tweepy.API(auth)
 # model = torch.load('model.pth')
 # model.eval()
 
+# Load the model from the .pkl file
+learn = load_learner('./midwit_model.pkl')
 
-# def prediction():
-#     # Preprocess the image
-#     print("Preprocessing image")
-#     image = torchvision.transforms.ToTensor()(Image.open('image.jpg'))
-#     image = image.unsqueeze(0)
-
-#     # Classify the image using the PyTorch model
-#     with torch.no_grad():
-#         prediction = model(image)
-
-#     # Convert the prediction to a string
-#     prediction = prediction[0].item()
-#     if prediction == 0:
-#         prediction = 'MidwitMeme'
-#     else:
-#         prediction = 'NotMidwitMeme'
-
-#     print("Prediction: " + prediction)
-#     return prediction == 'MidwitMeme'
+def prediction():
+    # Use the model to predict on an image
+    label, _, probs = learn.predict("./image.jpg")
+    print(label)
+    return label == 'midwitmeme'
 
 # Respond to a tweet that mentions the bot
 def respondToTweet(file='tweet_ID.txt'):
     # Get the last tweet ID that the bot replied to
     response = requests.get(os.getenv("BACKEND_URL") + "/last-seen")
-    print(response)
     last_id_json = response.json()
     if len(last_id_json["rows"]) == 0:
         last_id = 0
@@ -70,18 +59,27 @@ def respondToTweet(file='tweet_ID.txt'):
             continue
         print(str(mention.id) + '-' + mention.full_text)
 
-        tweet_status = api.get_status(id=mention.id)
-
+        tweet_status = api.get_status(id=mention.id, tweet_mode='extended')
+        original_tweet_id = mention.id
         # Check if the tweet is a reply and update status to the top tweet
         if tweet_status.in_reply_to_status_id:
             # Fetch the top tweet if the tweet is a reply
             original_tweet_id = tweet_status.in_reply_to_status_id
-            tweet_status = api.get_status(original_tweet_id )
+            tweet_status = api.get_status(original_tweet_id, tweet_mode='extended')
+
+        response = requests.get(os.getenv("BACKEND_URL") + "/tweet-exists/" + str(original_tweet_id))
+        print(response)
+        print("THIS IS THE RESPONSE")
+        print(response.json())
+        tweet_exists = response.json()
+        if (tweet_exists):
+            print("Tweet already exists in database")
+            continue
 
         # Extract the image from the tweet
         print("Extracting image from tweet")
-        media = tweet_status.entities["media"][0]
-        if media:
+        if "media" in tweet_status.entities:
+            media = tweet_status.entities["media"][0]
             media_url = media["media_url_https"]
             print("Image url: " + media_url + "")
         else:
@@ -95,7 +93,7 @@ def respondToTweet(file='tweet_ID.txt'):
             f.write(image_data)
 
         # Check if the image is a certain meme type
-        # if prediction():
+        if prediction():
             # Add the link to the tweet containing the image to the database
             tweet_url = f"https://twitter.com/{tweet_status.user.screen_name}/status/{tweet_status.id_str}"
             requests.post(os.getenv('BACKEND_URL') + '/add-tweet', json={
